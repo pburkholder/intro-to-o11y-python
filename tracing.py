@@ -41,7 +41,7 @@ print("Sending traces to Jaeger with apikey")
 #)
 #trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(hnyExporter))
 
-jaegerEndpoint = os.environ.get(JAEGER_ENDPOINT)
+jaegerEndpoint = os.environ.get("JAEGER_ENDPOINT")
 jaegerExporter = OTLPSpanExporter(
     endpoint=jaegerEndpoint
 )
