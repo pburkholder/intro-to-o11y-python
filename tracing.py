@@ -27,29 +27,27 @@ resource = Resource(attributes={
 })
 trace.set_tracer_provider(TracerProvider(resource=resource))
 
-#apikey = os.environ.get("HONEYCOMB_API_KEY", "missing API key")
-print("Sending traces to Jaeger with apikey")
+apikey = os.environ.get("HONEYCOMB_API_KEY", "missing API key")
 
 # Send the traces to Honeycomb
-#hnyExporter = OTLPSpanExporter(
-#    endpoint="api.honeycomb.io:443",
-#   insecure=False,
-#    credentials=ssl_channel_credentials(),
-#    headers=(
-#        ("x-honeycomb-team", apikey),
-#    )
-#)
-#trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(hnyExporter))
-
-aspect_io_key = os.environ.get("ASPECT_IO_KEY", "missing Aspect.io key")
-
-aspectExporter = OTLPSpanExporter(
-    endpoint="otelcol.aspecto.io:4317",
-    insecure=False,
+hnyExporter = OTLPSpanExporter(
+    endpoint="api.honeycomb.io:443",
+   insecure=False,
     credentials=ssl_channel_credentials(),
     headers=(
-        "Authorization", aspect_io_key
+        ("x-honeycomb-team", apikey),
     )
+)
+
+aspecto_auth = os.environ.get("ASPECTO_KEY", "missing Aspecto key")
+aspecto_endpoint = os.environ.get("ASPECTO_ENDPOINT", "missing Aspecto endpoint")
+
+print("Sending to " + aspecto_endpoint)
+print("Authorization " + aspecto_auth)
+aspecto_exporter = OTLPSpanExporter(
+    endpoint=aspecto_endpoint,
+    insecure=False,
+    headers={"authorization": aspecto_auth}
 )
 
 jaeger_endpoint = os.environ.get("JAEGER_ENDPOINT")
@@ -57,7 +55,11 @@ jaegerExporter = OTLPSpanExporter(
     endpoint=jaeger_endpoint
 )
 
-trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(jaegerExporter))
+#trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(jaegerExporter))
+#trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(aspecto_exporter))
+trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(hnyExporter))
+
+
 
 # To see spans in the log, uncomment this:
 trace.get_tracer_provider().add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
