@@ -41,16 +41,26 @@ print("Sending traces to Jaeger with apikey")
 #)
 #trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(hnyExporter))
 
-jaegerEndpoint = os.environ.get("JAEGER_ENDPOINT")
+aspect_io_key = os.environ.get("ASPECT_IO_KEY", "missing Aspect.io key")
+
+aspectExporter = OTLPSpanExporter(
+    endpoint="otelcol.aspecto.io:4317",
+    insecure=False,
+    credentials=ssl_channel_credentials(),
+    headers=(
+        "Authorization", aspect_io_key
+    )
+)
+
+jaeger_endpoint = os.environ.get("JAEGER_ENDPOINT")
 jaegerExporter = OTLPSpanExporter(
-    endpoint=jaegerEndpoint
+    endpoint=jaeger_endpoint
 )
 
 trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(jaegerExporter))
 
 # To see spans in the log, uncomment this:
 trace.get_tracer_provider().add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
-
 
 # auto-instrument outgoing requests
 RequestsInstrumentor().instrument(tracer_provider=trace.get_tracer_provider())
